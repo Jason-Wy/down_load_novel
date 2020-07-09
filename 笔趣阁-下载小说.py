@@ -4,7 +4,7 @@ import requests
 import os
 import threading
 
-file_path = './file/最豪上门龙婿.txt'
+file_path = './file/神魂至尊22.txt'
 
 def check_and_creat_dir(file_url):
     '''
@@ -32,6 +32,7 @@ def request_html(url):
         response = requests.get(url)
         if response.status_code == 200:
             # write_to_file(name,response.text)
+            response.encoding = 'utf-8'
             return response.text
     except requests.RequestException:
         return None
@@ -72,14 +73,17 @@ def beautiful_request_url(url):
 
     write_to_continue_file(file_path, content)
 
-    next_file_list = soup.find_all(attrs={"class": "bottem2"})
+    next_file_list = soup.find_all(attrs={"class": "bottem2","class": "bottem"})
     '''本页数据循环'''
     for next_file_item in next_file_list:
         '''解析出来下一页的地址，开始爬取下一页'''
         for item  in next_file_item.find_all("a"):
             if item.text == '下一章':
-                if '.html' in item['href']:
+                if '.html' in item['href'] and ('http' not in item['href']):
                     url = "https://www.biqubu.com"+item['href']
+                    beautiful_request_url(url)
+                elif '.html' in item['href'] and ('http' in item['href']):
+                    url = item['href']
                     beautiful_request_url(url)
                 else:
                     print("爬取完毕")
@@ -89,6 +93,15 @@ if __name__ == '__main__':
     '''下载笔趣阁小说使用
         需要第一章的地址
     '''
-    url = "https://www.biqubu.com/book_b215/7129730.html"
-    beautiful_request_url(url)
+    # url = "https://www.biqubu.com/book_b215/7129730.html"
+    # url = "https://www.biqubu.com/book_1354/820039.html"
+    url = 'http://www.biquge.info/35_35964/13146961.html'
+    try:
+
+        beautiful_request_url(url)
+    except:
+        ''''''
+        import traceback
+        traceback.print_exc()
+        beautiful_request_url(url)
 
