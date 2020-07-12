@@ -2,9 +2,11 @@ from bs4 import BeautifulSoup
 
 import requests
 import os
+import time
 import threading
 
-file_path = './file/神魂至尊22.txt'
+file_path = './file/丹道宗师.txt'
+url = "https://www.biqubu.com/book_2914/4028361.html"
 
 def check_and_creat_dir(file_url):
     '''
@@ -32,7 +34,7 @@ def request_html(url):
         response = requests.get(url)
         if response.status_code == 200:
             # write_to_file(name,response.text)
-            response.encoding = 'utf-8'
+            # response.encoding = 'utf-8'
             return response.text
     except requests.RequestException:
         return None
@@ -57,8 +59,16 @@ def write_to_continue_file(name,content):
 
 def beautiful_request_url(url):
     '''解析网页详情数据'''
+
     html = request_html(url)
-    soup = BeautifulSoup(html,'lxml')
+    if not html:
+        print("没有获取到数据，从新获取")
+        print(html)
+        print(url)
+        beautiful_request_url(url)
+
+    soup = BeautifulSoup(html, 'lxml')
+
 
     #开启多线程把标题与内容写入本地文件
 
@@ -73,7 +83,7 @@ def beautiful_request_url(url):
 
     write_to_continue_file(file_path, content)
 
-    next_file_list = soup.find_all(attrs={"class": "bottem2","class": "bottem"})
+    next_file_list = soup.find_all(attrs={"class": "bottem2"})
     '''本页数据循环'''
     for next_file_item in next_file_list:
         '''解析出来下一页的地址，开始爬取下一页'''
@@ -82,8 +92,11 @@ def beautiful_request_url(url):
                 if '.html' in item['href'] and ('http' not in item['href']):
                     url = "https://www.biqubu.com"+item['href']
                     beautiful_request_url(url)
+                    break
                 elif '.html' in item['href'] and ('http' in item['href']):
                     url = item['href']
+                    # 由于有检测频率的问题，所以加了延迟
+                    time.sleep(5)
                     beautiful_request_url(url)
                 else:
                     print("爬取完毕")
@@ -92,10 +105,13 @@ def beautiful_request_url(url):
 if __name__ == '__main__':
     '''下载笔趣阁小说使用
         需要第一章的地址
+        biquge.info 有简单的反爬虫，会限制访问频率
     '''
     # url = "https://www.biqubu.com/book_b215/7129730.html"
     # url = "https://www.biqubu.com/book_1354/820039.html"
-    url = 'http://www.biquge.info/35_35964/13146961.html'
+    # url = 'http://www.biquge.info/35_35964/13146961.html'
+    # url = 'https://www.biqubu.com/book_2914/1152510.html'
+
     try:
 
         beautiful_request_url(url)
@@ -103,5 +119,7 @@ if __name__ == '__main__':
         ''''''
         import traceback
         traceback.print_exc()
+        print("重新开始")
+        print(url)
         beautiful_request_url(url)
 
